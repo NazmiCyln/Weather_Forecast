@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hava_durumu/search_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
+
+import 'daily_weather.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,6 +19,9 @@ class _HomePageState extends State<HomePage> {
   var woeid;
   String abbr = "c";
   Position? position;
+  List temps = []..length = 5;
+  List abbrs = []..length = 5;
+  List dates = []..length = 5;
 
   //Telefonun o anki konumunu alma
   Future getDevicePosition() async {
@@ -29,7 +35,7 @@ class _HomePageState extends State<HomePage> {
     print("position $position");
   }
 
-  //Şehir adına göre apiden veri çek
+  //Şehir adına göre apiden id çek
   Future getLocationData() async {
     //Apinin urlsini aldık ve locationData değişkenine attık
     var url = Uri.https(
@@ -43,7 +49,7 @@ class _HomePageState extends State<HomePage> {
     woeid = locationDataParsed[0]["woeid"];
   }
 
-  //enlem ve boylama göre apiden veri çek
+  //enlem ve boylama göre apiden id ve şehir adı çek
   Future getLocationDataLatLong() async {
     //Apinin urlsini enlem ve boylama göre aldık ve locationData değişkenine attık
     var url = Uri.https("www.metaweather.com", "/api/location/search/",
@@ -71,6 +77,21 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       //sıcaklık değişkeninin içi dolduğunda yenilenmesi için setState içine alındı
       sicaklik = temperatureData["consolidated_weather"][0]["the_temp"].round();
+
+      for (int i = 0; i < 5; i++) {
+        //Diğer günlerin sıcaklıklarını temps listesine atıyoruz
+        temps[i] =
+            temperatureData["consolidated_weather"][i + 1]["the_temp"].round();
+
+        //Diğer günlerin durum kısaltmalarını abbrs listesine atıyoruz
+        abbrs[i] = temperatureData["consolidated_weather"][i + 1]
+            ["weather_state_abbr"];
+
+        //Diğer günlerin tarihlerini dates listesine atıyoruz
+        dates[i] =
+            temperatureData["consolidated_weather"][i + 1]["applicable_date"];
+      }
+
       //abbr değişkeninin içi dolduğunda yenilenmesi için setState içine alındı
       abbr = temperatureData["consolidated_weather"][0]["weather_state_abbr"];
     });
@@ -151,11 +172,11 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           "$sehir",
                           style: const TextStyle(
-                            fontSize: 30,
+                            fontSize: 32,
                             shadows: [
                               Shadow(
                                 color: Colors.black87,
-                                blurRadius: 15,
+                                blurRadius: 12,
                                 offset: Offset(4, 4),
                               ),
                             ],
@@ -177,9 +198,30 @@ class _HomePageState extends State<HomePage> {
                               sehir = sehir;
                             });
                           },
-                          icon: const Icon(Icons.search),
+                          icon: const Icon(
+                            Icons.search,
+                            size: 38,
+                          ),
                         ),
                       ],
+                    ),
+                    const SizedBox(
+                      height: 100,
+                    ),
+                    Container(
+                      height: 130,
+                      width: MediaQuery.of(context).size.width * 0.92,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 5,
+                        itemBuilder: (context, index) {
+                          return DailyWeather(
+                            date: dates[index],
+                            image: abbrs[index],
+                            temp: temps[index].toString(),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
