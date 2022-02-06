@@ -4,8 +4,8 @@ import 'package:hava_durumu/search_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
-
 import 'daily_weather.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
   Future getLocationData() async {
     //Apinin urlsini aldık ve locationData değişkenine attık
     var url = Uri.https(
-        "www.metaweather.com", "/api/location/search/", {"query": "$sehir"});
+        "www.metaweather.com", "/api/location/search/", {"query": sehir});
 
     locationData = await http.get(url);
 
@@ -135,7 +135,9 @@ class _HomePageState extends State<HomePage> {
       //sicaklik değeri boş ise progress döndür doluysa scaffoldu göster
       child: sicaklik == null
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: SpinKitFadingCircle(
+                color: Colors.teal,
+              ),
             )
           : Scaffold(
               backgroundColor: Colors.transparent,
